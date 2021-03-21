@@ -34,8 +34,9 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) configureRouter() {
-	s.router.HandleFunc("/sessions", s.handleSessionsCreate())
-	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods("POST", "GET")
+	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost)
+	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost)
+	s.router.HandleFunc("/users", s.getAllUsers()).Methods(http.MethodGet)
 }
 
 func (s *server) handleSessionsCreate() http.HandlerFunc {
@@ -89,6 +90,18 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 
 		u.Sanitize()
 		s.respond(w, r, http.StatusCreated, u)
+	}
+}
+
+func (s *server) getAllUsers() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		users, err := s.store.User().GetAll()
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, users)
 	}
 }
 
