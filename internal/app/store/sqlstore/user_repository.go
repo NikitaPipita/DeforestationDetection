@@ -31,7 +31,7 @@ func (r *UserRepository) Create(u *model.User) error {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT user_id, email, password, user_role, full_name FROM system_user WHERE email = $1",
+		"SELECT user_id, email, user_role, full_name FROM system_user WHERE email = $1",
 		email,
 	).Scan(
 		&u.ID,
@@ -79,4 +79,80 @@ func (r *UserRepository) GetAll() ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) FindByID(id int) (*model.User, error) {
+	u := &model.User{}
+	if err := r.store.db.QueryRow(
+		"SELECT user_id, email, user_role, full_name FROM system_user WHERE user_id = $1",
+		id,
+	).Scan(
+		&u.ID,
+		&u.Email,
+		&u.Role,
+		&u.FullName,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return u, nil
+}
+
+func (r *UserRepository) FindByIDWithPassword(id int) (*model.User, error) {
+	u := &model.User{}
+	if err := r.store.db.QueryRow(
+		"SELECT user_id, email, password, user_role, full_name FROM system_user WHERE user_id = $1",
+		id,
+	).Scan(
+		&u.ID,
+		&u.Email,
+		&u.Password,
+		&u.Role,
+		&u.FullName,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return u, nil
+}
+
+func (r *UserRepository) Update(id int, u *model.User) error {
+	if err := u.UpdateValidate(); err != nil {
+		return err
+	}
+
+	return r.store.db.QueryRow(
+		"UPDATE system_user SET email = $1, user_role = $2, full_name = $3 WHERE user_id = $4 RETURNING user_id, email, user_role, full_name",
+		u.Email,
+		u.Role,
+		u.FullName,
+		id,
+	).Scan(
+		&u.ID,
+		&u.Email,
+		&u.Role,
+		&u.FullName,
+	)
+}
+
+func (r *UserRepository) Delete(id int) error {
+	_, err := r.store.db.Exec("DELETE FROM system_user WHERE user_id = $1", id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return store.ErrRecordNotFound
+		}
+
+		return err
+	}
+
+	return nil
 }

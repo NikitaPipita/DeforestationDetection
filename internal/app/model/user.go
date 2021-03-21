@@ -21,7 +21,16 @@ func (u *User) Validate() error {
 		validation.Field(&u.Email, validation.Required, is.Email),
 		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")), validation.Length(6, 100)),
 		validation.Field(&u.Role, validation.Required),
+		validation.Field(&u.FullName, validation.Required),
+	)
+}
+
+func (u *User) UpdateValidate() error {
+	return validation.ValidateStruct(
+		u,
+		validation.Field(&u.Email, validation.Required, is.Email),
 		validation.Field(&u.Role, validation.Required),
+		validation.Field(&u.FullName, validation.Required),
 	)
 }
 
