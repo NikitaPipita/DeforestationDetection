@@ -93,12 +93,10 @@ func (r *IotGroupRepository) Create(g *model.IotGroup) error {
 
 func (r *IotGroupRepository) CreateByUser(g *model.IotGroup) error {
 	return r.store.db.QueryRow(
-		"INSERT INTO iot_group (user_id) VALUES ($1) RETURNING group_id, update_duration_seconds, last_iot_changes_time_unix",
+		"INSERT INTO iot_group (user_id) VALUES ($1) RETURNING group_id",
 		g.User.ID,
 	).Scan(
 		&g.ID,
-		&g.UpdateDurationSeconds,
-		&g.LastIotChangesTimeUnix,
 	)
 }
 

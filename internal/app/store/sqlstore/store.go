@@ -11,6 +11,7 @@ type Store struct {
 	db                 *sql.DB
 	userRepository     *UserRepository
 	iotGroupRepository *IotGroupRepository
+	iotRepository      *IotRepository
 }
 
 func New(db *sql.DB) *Store {
@@ -41,4 +42,16 @@ func (s *Store) IotGroup() store.IotGroupRepository {
 	}
 
 	return s.iotGroupRepository
+}
+
+func (s *Store) Iot() store.IotRepository {
+	if s.iotRepository != nil {
+		return s.iotRepository
+	}
+
+	s.iotRepository = &IotRepository{
+		store: s,
+	}
+
+	return s.iotRepository
 }

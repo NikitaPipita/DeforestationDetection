@@ -6,7 +6,7 @@ import (
 )
 
 type Iot struct {
-	IotID              int       `json:"iot_id"`
+	ID                 int       `json:"iot_id"`
 	User               *User     `json:"user"`
 	Group              *IotGroup `json:"group"`
 	Longitude          float32   `json:"longitude"`
