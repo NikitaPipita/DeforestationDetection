@@ -155,6 +155,10 @@ func (r *IotRepository) Create(i *model.Iot) error {
 		return err
 	}
 
+	if err := i.BeforeCreate(); err != nil {
+		return err
+	}
+
 	return r.store.db.QueryRow(
 		"INSERT INTO iot (user_id, group_id, longitude, latitude, last_update_time_unix, iot_state, iot_type) "+
 			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING iot_id",
@@ -170,6 +174,10 @@ func (r *IotRepository) Create(i *model.Iot) error {
 
 func (r *IotRepository) CreateByUser(i *model.Iot) error {
 	if err := i.Validate(); err != nil {
+		return err
+	}
+
+	if err := i.BeforeCreate(); err != nil {
 		return err
 	}
 
@@ -189,6 +197,10 @@ func (r *IotRepository) CreateByUser(i *model.Iot) error {
 
 func (r *IotRepository) Update(id int, i *model.Iot) error {
 	if err := i.Validate(); err != nil {
+		return err
+	}
+
+	if err := i.BeforeCreate(); err != nil {
 		return err
 	}
 

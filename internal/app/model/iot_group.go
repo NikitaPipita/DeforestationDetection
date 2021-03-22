@@ -6,7 +6,7 @@ import (
 
 type IotGroup struct {
 	ID                     int   `json:"group_id"`
-	User                   *User `json:"user"`
+	User                   *User `json:"user,omitempty"`
 	UpdateDurationSeconds  int   `json:"update_duration_seconds"`
 	LastIotChangesTimeUnix int   `json:"last_iot_changes_time_unix"`
 }
@@ -14,7 +14,7 @@ type IotGroup struct {
 func (g *IotGroup) Validate() error {
 	return validation.ValidateStruct(
 		g,
-		validation.Field(&g.UpdateDurationSeconds, validation.Required, validation.Min(60)),
-		validation.Field(&g.LastIotChangesTimeUnix, validation.Required, validation.Min(0)),
+		validation.Field(&g.UpdateDurationSeconds, validation.Min(60)),
+		validation.Field(&g.LastIotChangesTimeUnix, validation.Min(0)),
 	)
 }

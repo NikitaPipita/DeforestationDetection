@@ -2,15 +2,15 @@ package model
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
+	"strconv"
 )
 
 type Iot struct {
 	ID                 int       `json:"iot_id"`
 	User               *User     `json:"user"`
 	Group              *IotGroup `json:"group"`
-	Longitude          float32   `json:"longitude"`
-	Latitude           float32   `json:"latitude"`
+	Longitude          float64   `json:"longitude"`
+	Latitude           float64   `json:"latitude"`
 	LastUpdateTimeUnix int64     `json:"last_update_time_unix"`
 	IotState           string    `json:"iot_state"`
 	IotType            string    `json:"iot_type"`
@@ -19,12 +19,14 @@ type Iot struct {
 func (i *Iot) Validate() error {
 	if err := validation.ValidateStruct(
 		i,
-		validation.Field(&i.Longitude, validation.Required, is.Longitude),
-		validation.Field(&i.Latitude, validation.Required, is.Latitude),
-		validation.Field(&i.LastUpdateTimeUnix, validation.Required, validation.Min(0)),
+		validation.Field(&i.LastUpdateTimeUnix, validation.Min(0)),
 		validation.Field(&i.IotState, validation.Required),
 		validation.Field(&i.IotType, validation.Required),
 	); err != nil {
+		return err
+	}
+
+	if err := i.ValidateLongitudeAndLatitude(); err != nil {
 		return err
 	}
 
@@ -33,6 +35,28 @@ func (i *Iot) Validate() error {
 	}
 
 	return i.ValidateType()
+}
+
+func (i *Iot) ValidateLongitudeAndLatitude() error {
+	sLongitude := strconv.FormatFloat(i.Longitude, 'f', 6, 64)
+	fLongitude, err := strconv.ParseFloat(sLongitude, 64)
+
+	if err != nil {
+		return err
+	}
+
+	if fLongitude < -180 && fLongitude > 180 {
+		return ErrIncorrectLongOrLang
+	}
+
+	sLatitude := strconv.FormatFloat(i.Latitude, 'f', 6, 64)
+	fLatitude, err := strconv.ParseFloat(sLatitude, 64)
+
+	if fLatitude < -90 && fLatitude > 90 {
+		return ErrIncorrectLongOrLang
+	}
+
+	return nil
 }
 
 func (i *Iot) ValidateState() error {
@@ -49,4 +73,25 @@ func (i *Iot) ValidateType() error {
 	}
 
 	return ErrIncorrectType
+}
+
+func (i *Iot) BeforeCreate() error {
+	sLongitude := strconv.FormatFloat(i.Longitude, 'f', 6, 64)
+	fLongitude, err := strconv.ParseFloat(sLongitude, 64)
+
+	if err != nil {
+		return err
+	}
+
+	i.Longitude = fLongitude
+
+	sLatitude := strconv.FormatFloat(i.Latitude, 'f', 6, 64)
+	fLatitude, err := strconv.ParseFloat(sLatitude, 64)
+	if err != nil {
+		return err
+	}
+
+	i.Latitude = fLatitude
+
+	return nil
 }

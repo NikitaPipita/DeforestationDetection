@@ -8,11 +8,11 @@ import (
 
 type User struct {
 	ID                int    `json:"user_id"`
-	Email             string `json:"email"`
+	Email             string `json:"email,omitempty"`
 	Password          string `json:"password,omitempty"`
 	EncryptedPassword string `json:"-"`
-	Role              string `json:"user_role"`
-	FullName          string `json:"full_name"`
+	Role              string `json:"user_role,omitempty"`
+	FullName          string `json:"full_name,omitempty"`
 }
 
 func (u *User) Validate() error {
