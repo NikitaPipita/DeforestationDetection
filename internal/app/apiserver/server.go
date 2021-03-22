@@ -41,6 +41,13 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/user/{id:[0-9]+}/info", s.getUserByIdWithPassword()).Methods(http.MethodGet)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.updateUserById()).Methods(http.MethodPut)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.deleteUserById()).Methods(http.MethodDelete)
+
+	s.router.HandleFunc("/groups", s.getAllIotGroups()).Methods(http.MethodGet)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.getIotGroupByID()).Methods(http.MethodGet)
+	s.router.HandleFunc("/groups", s.createIotGroup()).Methods(http.MethodPost)
+	s.router.HandleFunc("/groups/create", s.createIotGroupByUser()).Methods(http.MethodPost)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.updateIotGroupById()).Methods(http.MethodPut)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.deleteIotGroupById()).Methods(http.MethodDelete)
 }
 
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {

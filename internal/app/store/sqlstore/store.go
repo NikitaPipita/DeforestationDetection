@@ -8,8 +8,9 @@ import (
 )
 
 type Store struct {
-	db             *sql.DB
-	userRepository *UserRepository
+	db                 *sql.DB
+	userRepository     *UserRepository
+	iotGroupRepository *IotGroupRepository
 }
 
 func New(db *sql.DB) *Store {
@@ -28,4 +29,16 @@ func (s *Store) User() store.UserRepository {
 	}
 
 	return s.userRepository
+}
+
+func (s *Store) IotGroup() store.IotGroupRepository {
+	if s.iotGroupRepository != nil {
+		return s.iotGroupRepository
+	}
+
+	s.iotGroupRepository = &IotGroupRepository{
+		store: s,
+	}
+
+	return s.iotGroupRepository
 }
