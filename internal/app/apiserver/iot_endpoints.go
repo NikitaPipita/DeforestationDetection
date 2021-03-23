@@ -223,3 +223,15 @@ func (s *server) checkIfPositionSuitable() http.HandlerFunc {
 		s.respond(w, r, http.StatusOK, response)
 	}
 }
+
+func (s *server) getAllSignaling() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		iots, err := s.store.Iot().GetAllSignaling()
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, iots)
+	}
+}

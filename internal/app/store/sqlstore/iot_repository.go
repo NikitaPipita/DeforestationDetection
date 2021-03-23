@@ -296,3 +296,40 @@ func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, 
 
 	return true, nil
 }
+
+func (r *IotRepository) GetAllSignaling() ([]model.Iot, error) {
+	rows, err := r.store.db.Query(
+		"SELECT longitude, latitude, last_update_time_unix, iot_state " +
+			"FROM iot " +
+			"WHERE iot_state = 'active' OR iot_state = 'lost'")
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var iots []model.Iot
+
+	for rows.Next() {
+		var i model.Iot
+		i.User = &model.User{}
+		i.Group = &model.IotGroup{}
+		if err := rows.Scan(
+			&i.Longitude,
+			&i.Latitude,
+			&i.IotState,
+		); err != nil {
+			return nil, err
+		}
+		i.Longitude = i.Longitude + 126
+		i.Latitude = i.Latitude - 77
+		iots = append(iots, i)
+	}
+
+	return iots, nil
+}
