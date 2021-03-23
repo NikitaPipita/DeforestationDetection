@@ -10,6 +10,7 @@ type UserRepository interface {
 	FindByIDWithPassword(id int) (*model.User, error)
 	Update(int, *model.User) error
 	Delete(int) error
+	GetRole(id int) (string, error)
 }
 
 type IotGroupRepository interface {

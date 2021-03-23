@@ -156,3 +156,20 @@ func (r *UserRepository) Delete(id int) error {
 
 	return nil
 }
+
+func (r *UserRepository) GetRole(id int) (string, error) {
+	role := ""
+	if err := r.store.db.QueryRow("SELECT user_role FROM system_user WHERE user_id = $1",
+		id,
+	).Scan(
+		&role,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return "", store.ErrRecordNotFound
+		}
+
+		return "", err
+	}
+
+	return role, nil
+}

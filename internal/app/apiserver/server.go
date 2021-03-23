@@ -15,6 +15,7 @@ var (
 	errIncorrectID              = errors.New("incorrect id")
 	errUnauthorized             = errors.New("unauthorized")
 	errRefreshExpired           = errors.New("refresh expired")
+	errAccessDenied             = errors.New("access denied")
 )
 
 type server struct {
@@ -55,27 +56,27 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) configureRouter() {
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost)
-	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost)
+	s.router.HandleFunc("/users", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.handleUsersCreate()))).Methods(http.MethodPost)
 	s.router.HandleFunc("/users", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getAllUsers()))).Methods(http.MethodGet)
-	s.router.HandleFunc("/user/{id:[0-9]+}", s.getUserById()).Methods(http.MethodGet)
-	s.router.HandleFunc("/user/{id:[0-9]+}/info", s.getUserByIdWithPassword()).Methods(http.MethodGet)
-	s.router.HandleFunc("/user/{id:[0-9]+}", s.updateUserById()).Methods(http.MethodPut)
-	s.router.HandleFunc("/user/{id:[0-9]+}", s.deleteUserById()).Methods(http.MethodDelete)
+	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getUserById()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/user/{id:[0-9]+}/info", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getUserByIdWithPassword()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.updateUserById()))).Methods(http.MethodPut)
+	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.deleteUserById()))).Methods(http.MethodDelete)
 
-	s.router.HandleFunc("/groups", s.getAllIotGroups()).Methods(http.MethodGet)
-	s.router.HandleFunc("/group/{id:[0-9]+}", s.getIotGroupByID()).Methods(http.MethodGet)
-	s.router.HandleFunc("/groups", s.createIotGroup()).Methods(http.MethodPost)
-	s.router.HandleFunc("/groups/create", s.createIotGroupByUser()).Methods(http.MethodPost)
-	s.router.HandleFunc("/group/{id:[0-9]+}", s.updateIotGroupById()).Methods(http.MethodPut)
-	s.router.HandleFunc("/group/{id:[0-9]+}", s.deleteIotGroupById()).Methods(http.MethodDelete)
+	s.router.HandleFunc("/groups", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getAllIotGroups()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getIotGroupByID()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/groups", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.createIotGroup()))).Methods(http.MethodPost)
+	s.router.HandleFunc("/groups/create", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.createIotGroupByUser()))).Methods(http.MethodPost)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.updateIotGroupById()))).Methods(http.MethodPut)
+	s.router.HandleFunc("/group/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.deleteIotGroupById()))).Methods(http.MethodDelete)
 
-	s.router.HandleFunc("/iots", s.getAllIots()).Methods(http.MethodGet)
-	s.router.HandleFunc("/iots/{id:[0-9]+}", s.getAllIotsInGroup()).Methods(http.MethodGet)
-	s.router.HandleFunc("/iot/{id:[0-9]+}", s.getIotById()).Methods(http.MethodGet)
-	s.router.HandleFunc("/iots", s.createIot()).Methods(http.MethodPost)
-	s.router.HandleFunc("/iots/create", s.createIotByUser()).Methods(http.MethodPost)
-	s.router.HandleFunc("/iot/{id:[0-9]+}", s.updateIotById()).Methods(http.MethodPut)
-	s.router.HandleFunc("/iot/{id:[0-9]+}", s.deleteIotById()).Methods(http.MethodDelete)
+	s.router.HandleFunc("/iots", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getAllIots()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/iots/{id:[0-9]+}", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getAllIotsInGroup()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/iot/{id:[0-9]+}", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getIotById()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/iots", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.createIot()))).Methods(http.MethodPost)
+	s.router.HandleFunc("/iots/create", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.createIotByUser()))).Methods(http.MethodPost)
+	s.router.HandleFunc("/iot/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.updateIotById()))).Methods(http.MethodPut)
+	s.router.HandleFunc("/iot/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.deleteIotById()))).Methods(http.MethodDelete)
 }
 
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
