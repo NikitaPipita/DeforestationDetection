@@ -326,10 +326,30 @@ func (r *IotRepository) GetAllSignaling() ([]model.Iot, error) {
 		); err != nil {
 			return nil, err
 		}
-		i.Longitude = i.Longitude + 126
-		i.Latitude = i.Latitude - 77
+		i.Longitude = i.Longitude + 0.000126
+		i.Latitude = i.Latitude - 0.000077
 		iots = append(iots, i)
 	}
 
 	return iots, nil
+}
+
+func (r *IotRepository) ChangeState(id int, state string) error {
+	i := &model.Iot{
+		User:     &model.User{},
+		Group:    &model.IotGroup{},
+		IotState: state,
+	}
+
+	if err := i.ValidateState(); err != nil {
+		return err
+	}
+
+	_, err := r.store.db.Exec(
+		"UPDATE iot SET iot_state = $1 WHERE iot_id = $2",
+		i.IotType,
+		id,
+	)
+
+	return err
 }

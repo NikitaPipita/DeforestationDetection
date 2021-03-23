@@ -78,7 +78,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/iot/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.updateIotById()))).Methods(http.MethodPut)
 	s.router.HandleFunc("/iot/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.deleteIotById()))).Methods(http.MethodDelete)
 	s.router.HandleFunc("/iot/check", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.checkIfPositionSuitable()))).Methods(http.MethodPost)
-	s.router.HandleFunc("/iot/check", s.getAllSignaling()).Methods(http.MethodPost)
+	s.router.HandleFunc("/iot/signal", s.tokenAuthMiddleware(s.observerAccessMiddleware(s.getAllSignaling()))).Methods(http.MethodGet)
 }
 
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
