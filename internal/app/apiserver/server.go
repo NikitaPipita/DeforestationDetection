@@ -4,13 +4,17 @@ import (
 	"deforestation.detection.com/server/internal/app/store"
 	"encoding/json"
 	"errors"
+	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 )
 
 var (
 	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
 	errIncorrectID              = errors.New("incorrect id")
+	errUnauthorized             = errors.New("unauthorized")
+	errRefreshExpired           = errors.New("refresh expired")
 )
 
 type server struct {
@@ -24,9 +28,25 @@ func newServer(store store.Store) *server {
 		store:  store,
 	}
 
+	initRedis()
+
 	s.configureRouter()
 
 	return s
+}
+
+func initRedis() {
+	dsn := os.Getenv("REDIS_DSN")
+	if len(dsn) == 0 {
+		dsn = "localhost:6379"
+	}
+	client = redis.NewClient(&redis.Options{
+		Addr: dsn,
+	})
+	_, err := client.Ping().Result()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +56,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) configureRouter() {
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost)
 	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost)
-	s.router.HandleFunc("/users", s.getAllUsers()).Methods(http.MethodGet)
+	s.router.HandleFunc("/users", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getAllUsers()))).Methods(http.MethodGet)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.getUserById()).Methods(http.MethodGet)
 	s.router.HandleFunc("/user/{id:[0-9]+}/info", s.getUserByIdWithPassword()).Methods(http.MethodGet)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.updateUserById()).Methods(http.MethodPut)
@@ -52,8 +72,8 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/iots", s.getAllIots()).Methods(http.MethodGet)
 	s.router.HandleFunc("/iots/{id:[0-9]+}", s.getAllIotsInGroup()).Methods(http.MethodGet)
 	s.router.HandleFunc("/iot/{id:[0-9]+}", s.getIotById()).Methods(http.MethodGet)
-	s.router.HandleFunc("/iot", s.createIot()).Methods(http.MethodPost)
-	s.router.HandleFunc("/iot/create", s.createIotByUser()).Methods(http.MethodPost)
+	s.router.HandleFunc("/iots", s.createIot()).Methods(http.MethodPost)
+	s.router.HandleFunc("/iots/create", s.createIotByUser()).Methods(http.MethodPost)
 	s.router.HandleFunc("/iot/{id:[0-9]+}", s.updateIotById()).Methods(http.MethodPut)
 	s.router.HandleFunc("/iot/{id:[0-9]+}", s.deleteIotById()).Methods(http.MethodDelete)
 }

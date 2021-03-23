@@ -31,7 +31,7 @@ func (r *UserRepository) Create(u *model.User) error {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT user_id, email, user_role, full_name FROM system_user WHERE email = $1",
+		"SELECT user_id, email, password, user_role, full_name FROM system_user WHERE email = $1",
 		email,
 	).Scan(
 		&u.ID,

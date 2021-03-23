@@ -27,7 +27,22 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 			return
 		}
 
-		s.respond(w, r, http.StatusOK, nil)
+		ts, err := CreateToken(uint64(user.ID))
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		if err := CreateAuth(uint64(user.ID), ts); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+		}
+
+		tokens := map[string]string{
+			"access_token":  ts.AccessToken,
+			"refresh_token": ts.RefreshToken,
+		}
+
+		s.respond(w, r, http.StatusOK, tokens)
 	}
 }
 
