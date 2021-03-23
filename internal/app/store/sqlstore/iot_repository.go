@@ -238,3 +238,61 @@ func (r *IotRepository) Delete(id int) error {
 
 	return nil
 }
+
+func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, latitude float64, iotType string) (bool, error) {
+	i := &model.Iot{
+		User:      &model.User{},
+		Group:     &model.IotGroup{},
+		Longitude: longitude,
+		Latitude:  latitude,
+		IotType:   iotType,
+	}
+
+	if err := i.ValidateLongitudeAndLatitude(); err != nil {
+		return false, err
+	}
+
+	if err := i.ValidateType(); err != nil {
+		return false, err
+	}
+
+	rows, err := r.store.db.Query(
+		"SELECT longitude, latitude, iot_type "+
+			"FROM iot "+
+			"WHERE group_id = $1", groupID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, store.ErrRecordNotFound
+		}
+
+		return false, err
+	}
+
+	for rows.Next() {
+		var curLongitude float64
+		var curLatitude float64
+		var curType string
+		if err := rows.Scan(
+			&curLongitude,
+			&curLatitude,
+			&curType,
+		); err != nil {
+			return false, err
+		}
+
+		result := haversineDistanceBetweenTwoPointsInMeters(longitude, latitude, curLongitude, curLatitude)
+
+		if curType == "microphone" && iotType == "microphone" && result < 200 {
+			return false, nil
+		} else if curType == "microphone" && iotType == "gyroscope" && result < 100 {
+			return false, nil
+		} else if curType == "gyroscope" && iotType == "gyroscope" && result < 40 {
+			return false, nil
+		} else if curType == "microphone" && iotType == "microphone" && result < 100 {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}

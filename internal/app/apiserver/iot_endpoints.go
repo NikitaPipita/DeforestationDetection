@@ -194,3 +194,32 @@ func (s *server) deleteIotById() http.HandlerFunc {
 		s.respond(w, r, http.StatusNoContent, nil)
 	}
 }
+
+func (s *server) checkIfPositionSuitable() http.HandlerFunc {
+	type request struct {
+		GroupID   int     `json:"group_id"`
+		Longitude float64 `json:"longitude"`
+		Latitude  float64 `json:"latitude"`
+		IotType   string  `json:"iot_type"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		suitable, err := s.store.Iot().CheckIfPositionSuitable(req.GroupID, req.Longitude, req.Latitude, req.IotType)
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		response := map[string]bool{
+			"suitable": suitable,
+		}
+
+		s.respond(w, r, http.StatusOK, response)
+	}
+}
