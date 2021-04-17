@@ -15,6 +15,7 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -55,6 +56,7 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -79,6 +81,7 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 
 func (s *server) getAllUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		users, err := s.store.User().GetAll()
 		if err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -91,6 +94,7 @@ func (s *server) getAllUsers() http.HandlerFunc {
 
 func (s *server) getUserById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -110,6 +114,7 @@ func (s *server) getUserById() http.HandlerFunc {
 
 func (s *server) getUserByIdWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -135,6 +140,7 @@ func (s *server) updateUserById() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -164,6 +170,7 @@ func (s *server) updateUserById() http.HandlerFunc {
 
 func (s *server) deleteUserById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
