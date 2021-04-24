@@ -14,6 +14,15 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 		Password string `json:"password"`
 	}
 
+	type response struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+		ID           int    `json:"user_id"`
+		Email        string `json:"email"`
+		Role         string `json:"user_role"`
+		FullName     string `json:"full_name"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
 		req := &request{}
@@ -38,12 +47,15 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 		}
 
-		tokens := map[string]string{
-			"access_token":  ts.AccessToken,
-			"refresh_token": ts.RefreshToken,
-		}
+		res := response{
+			AccessToken:  ts.AccessToken,
+			RefreshToken: ts.RefreshToken,
+			ID:           user.ID,
+			Email:        user.Email,
+			Role:         user.Role,
+			FullName:     user.FullName}
 
-		s.respond(w, r, http.StatusOK, tokens)
+		s.respond(w, r, http.StatusOK, res)
 	}
 }
 
