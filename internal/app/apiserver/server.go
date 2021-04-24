@@ -56,7 +56,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) configureRouter() {
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost)
-	s.router.HandleFunc("/refresh", s.observerAccessMiddleware(s.updateToken())).Methods(http.MethodPost)
+	s.router.HandleFunc("/refresh", s.updateToken()).Methods(http.MethodPost)
 	s.router.HandleFunc("/users", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.handleUsersCreate()))).Methods(http.MethodPost)
 	s.router.HandleFunc("/users", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getAllUsers()))).Methods(http.MethodGet)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.getUserById()))).Methods(http.MethodGet)
