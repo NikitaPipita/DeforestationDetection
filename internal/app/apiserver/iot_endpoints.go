@@ -10,6 +10,7 @@ import (
 
 func (s *server) getAllIots() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		iots, err := s.store.Iot().GetAll()
 		if err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -22,6 +23,7 @@ func (s *server) getAllIots() http.HandlerFunc {
 
 func (s *server) getAllIotsInGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -41,6 +43,7 @@ func (s *server) getAllIotsInGroup() http.HandlerFunc {
 
 func (s *server) getIotById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -70,6 +73,7 @@ func (s *server) createIot() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -109,6 +113,7 @@ func (s *server) createIotByUser() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -146,6 +151,7 @@ func (s *server) updateIotById() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -179,6 +185,7 @@ func (s *server) updateIotById() http.HandlerFunc {
 
 func (s *server) deleteIotById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -204,6 +211,7 @@ func (s *server) checkIfPositionSuitable() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -226,6 +234,7 @@ func (s *server) checkIfPositionSuitable() http.HandlerFunc {
 
 func (s *server) getAllSignaling() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		iots, err := s.store.Iot().GetAllSignaling()
 		if err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -243,6 +252,7 @@ func (s *server) changeIotState() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)

@@ -10,6 +10,7 @@ import (
 
 func (s *server) getAllIotGroups() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		iotGroups, err := s.store.IotGroup().GetAll()
 		if err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -22,6 +23,7 @@ func (s *server) getAllIotGroups() http.HandlerFunc {
 
 func (s *server) getIotGroupByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -47,6 +49,7 @@ func (s *server) createIotGroup() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -75,6 +78,7 @@ func (s *server) createIotGroupByUser() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -102,6 +106,7 @@ func (s *server) updateIotGroupById() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -131,6 +136,7 @@ func (s *server) updateIotGroupById() http.HandlerFunc {
 
 func (s *server) deleteIotGroupById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
