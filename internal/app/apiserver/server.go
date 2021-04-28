@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"os"
 )
@@ -39,14 +40,16 @@ func newServer(store store.Store) *server {
 func initRedis() {
 	dsn := os.Getenv("REDIS_URL")
 	if len(dsn) == 0 {
-		dsn = "localhost:6379"
+		log.Panicln("Incorrect Redis URL")
 	}
-	client = redis.NewClient(&redis.Options{
-		Addr: dsn,
-	})
-	_, err := client.Ping().Result()
+	addr, err := redis.ParseURL(dsn)
 	if err != nil {
-		panic(err)
+		log.Panicf("Can't parse Redis URL: %v", err)
+	}
+	client = redis.NewClient(addr)
+	_, err = client.Ping().Result()
+	if err != nil {
+		log.Panicf("Can't ping Redis: %v", err)
 	}
 }
 
