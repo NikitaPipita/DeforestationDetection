@@ -34,3 +34,7 @@ type IotRepository interface {
 	GetAllSignaling() ([]model.Iot, error)
 	ChangeState(int, string) error
 }
+
+type DumpRepository interface {
+	CreateDump(dumpFileDir string) string
+}

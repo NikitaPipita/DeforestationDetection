@@ -9,10 +9,11 @@ import (
 
 type Store struct {
 	db                 *sql.DB
+	config             *DBConfig
 	userRepository     *UserRepository
 	iotGroupRepository *IotGroupRepository
 	iotRepository      *IotRepository
-	config             *DBConfig
+	dumpRepository     *DumpRepository
 }
 
 func New(db *sql.DB, config *DBConfig) *Store {
@@ -56,4 +57,16 @@ func (s *Store) Iot() store.IotRepository {
 	}
 
 	return s.iotRepository
+}
+
+func (s *Store) Dump() store.DumpRepository {
+	if s.dumpRepository != nil {
+		return s.dumpRepository
+	}
+
+	s.dumpRepository = &DumpRepository{
+		store: s,
+	}
+
+	return s.dumpRepository
 }
