@@ -1,1 +1,1 @@
-web: bin/DeforestationDetection
+web: bin/apiserver
