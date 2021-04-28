@@ -13,7 +13,10 @@ func Start(config *Config) error {
 	}
 
 	defer db.Close()
-	store := sqlstore.New(db)
+	store := sqlstore.New(db, &sqlstore.DBConfig{
+		PGDatabaseURL: config.PGDatabaseURL,
+		DumpDIR:       config.DatabaseDumpDir,
+	})
 	srv := newServer(store)
 
 	return http.ListenAndServe(config.BindAddr, srv)

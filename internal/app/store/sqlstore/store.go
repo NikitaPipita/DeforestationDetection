@@ -12,11 +12,13 @@ type Store struct {
 	userRepository     *UserRepository
 	iotGroupRepository *IotGroupRepository
 	iotRepository      *IotRepository
+	config             *DBConfig
 }
 
-func New(db *sql.DB) *Store {
+func New(db *sql.DB, config *DBConfig) *Store {
 	return &Store{
-		db: db,
+		db:     db,
+		config: config,
 	}
 }
 
