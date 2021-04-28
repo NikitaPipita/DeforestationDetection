@@ -37,7 +37,7 @@ func newServer(store store.Store) *server {
 }
 
 func initRedis() {
-	dsn := os.Getenv("REDIS_DSN")
+	dsn := os.Getenv("REDIS_URL")
 	if len(dsn) == 0 {
 		dsn = "localhost:6379"
 	}
