@@ -34,8 +34,14 @@ func NewConfig() *Config {
 	}
 	cwd, _ := os.Getwd()
 	dbDumpDir = filepath.Join(cwd, dbDumpDir)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatalf("PORT ERROR")
+	}
+
 	return &Config{
-		BindAddr:        ":8080",
+		BindAddr:        ":" + port,
 		LogLevel:        "debug",
 		DatabaseURL:     psqlInfo,
 		PGDatabaseURL:   pgDBConn,
