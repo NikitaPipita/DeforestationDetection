@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 )
 
 type DumpRepository struct {
@@ -31,13 +32,16 @@ func (d *DumpRepository) CreateDump() string {
 	cmd := exec.Command("pg_dump", d.store.config.PGDatabaseURL, "--column-inserts", "-f", dumpFilePath)
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			log.Printf("DUMPING FAILLED: %v", err)
+			log.Printf("DUMPING FAILLED: %v, STDERR: %v", err, stderr.String())
 		}
+		wg.Done()
 	}()
-
+	wg.Wait()
 	return dumpFilePath
 }
 
