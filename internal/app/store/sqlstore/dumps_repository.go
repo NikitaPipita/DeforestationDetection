@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -15,8 +14,9 @@ type DumpRepository struct {
 	store *Store
 }
 
-func (d *DumpRepository) CreateDump(dumpFileDir string) string {
+func (d *DumpRepository) CreateDump() string {
 	dumpFileName := "dump.sql" // TODO: RENAME??
+	dumpFileDir := d.store.config.DumpDIR
 	dumpFilePath := filepath.Join(dumpFileDir, dumpFileName)
 	if _, err := os.Stat(dumpFileDir); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -41,13 +41,7 @@ func (d *DumpRepository) CreateDump(dumpFileDir string) string {
 	return dumpFilePath
 }
 
-func (d *DumpRepository) Execute(dumpFilePath string) error {
-	dumpFileContent, err := ioutil.ReadFile(dumpFilePath)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	dumpQueries := string(dumpFileContent)
+func (d *DumpRepository) Execute(dumpingQuery string) error {
 
 	transaction, err := d.store.db.Begin()
 	if err != nil {
@@ -65,7 +59,7 @@ func (d *DumpRepository) Execute(dumpFilePath string) error {
 		log.Println(err)
 		return err
 	}
-	if _, err := transaction.Exec(dumpQueries); err != nil {
+	if _, err := transaction.Exec(dumpingQuery); err != nil {
 		log.Println(err)
 		return err
 	}

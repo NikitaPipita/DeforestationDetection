@@ -1,83 +1,43 @@
 package apiserver
 
 import (
-	"deforestation.detection.com/server/internal/app/model"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
-	"strconv"
 )
 
-func (a *server) ServeDumpDownloadRequest(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		// ЕСЛИ ПАПКА ДАМПА НЕ СУЩЕСТВУЕТ,
-		// CreateDir (путь папки дампа)
-
-		dumpRecord, err := a.store.Dump().Make("dumps/")
-		if err != nil {
-			a.error(w, r, http.StatusUnprocessableEntity, err)
+func (s *server) MakeAndDownloadDump(w http.ResponseWriter, r *http.Request) {
+	dumpRecordFilePath := s.store.Dump().CreateDump()
+	if _, err := os.Stat(dumpRecordFilePath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
-		if err != nil || !filesutil.Exist(dumpRecord.FilePath) {
-			a.server.Respond(w, r, http.StatusNotFound, nil)
-			return
-		}
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", dumpRecord.FileName))
-		http.ServeFile(w, r, dumpRecord.DumpFilePath)
 	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", path.Base(dumpRecordFilePath)))
+	http.ServeFile(w, r, dumpRecordFilePath)
+	_ = os.Remove(dumpRecordFilePath)
 }
 
-func Exist(filePath string) bool {
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
-/*
-Delete function deletes the file, specified in the argument and returns
-the boolean value of operation.
-
-If the file is deleted, true is returned.
-If the file is not exist, true will be returned as well.
-
-Otherwise, the function returns false
-*/
-func Delete(filePath string) bool {
-	if err := os.Remove(filePath); err != nil {
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			return true
-		}
-		return false
-	}
-	return true
-}
-
-// ExtractFileName selects the file name from it's path
-func ExtractFileName(filePath string) string {
-	return filepath.Base(filePath)
-}
-
-func CreateDir(dirPath string) error {
-	return os.MkdirAll(dirPath, os.ModePerm)
-}
-
-func ClearDir(dirPath string) error {
-	files, err := os.ReadDir(dirPath)
+func (s *server) UploadAndExecuteDump(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("file")
 	if err != nil {
-		return err
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
 	}
-	for _, file := range files {
-		err := os.RemoveAll(path.Join(dirPath, file.Name()))
-		if err != nil {
-			return err
-		}
+	defer func() { _ = file.Close() }()
+	qBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
 	}
-	return nil
+	if err := s.store.Dump().Execute(string(qBytes)); err != nil {
+		s.error(w, r, http.StatusUnprocessableEntity, err)
+		return
+	}
+	s.respond(w, r, http.StatusOK, nil)
 }

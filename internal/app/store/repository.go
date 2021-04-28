@@ -36,6 +36,6 @@ type IotRepository interface {
 }
 
 type DumpRepository interface {
-	CreateDump(dumpFileDir string) string
-	Execute(dumpFilePath string) error
+	CreateDump() string
+	Execute(dumpingQuery string) error
 }
