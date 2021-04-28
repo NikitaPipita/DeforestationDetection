@@ -16,8 +16,12 @@ const (
 type Config struct {
 	BindAddr    string `toml:"bind_addr"`
 	LogLevel    string `toml:"log_level"`
-	DatabaseURL string `os:"database_url"`
+	DatabaseURL string `os:"database_url"` // postgres://user:password@host:port/databaseName?sslmode=[enable/disable]?sslmode=disable
+	// postgresql://{user/psswd}ec2-3-217-219-146.compute-1.amazonaws.com:5432/d1d17sa4ihs51r
 }
+
+// postgres://postgres:1234567@localhost:8080/deforestation_detection_db?sslmode=disable
+// DATABASE_URL
 
 func NewConfig() *Config {
 	config := dbConfig()
@@ -31,6 +35,23 @@ func NewConfig() *Config {
 }
 
 func dbConfig() map[string]string {
+	// DATABASE CONN URL
+	// dbURL := os.Getenv("DATABASE_URL")
+	// host=host password=password
+
+	// ParsePostgreConn determines if url contains `postgre://` or `postgresql://`
+	// And converts it to driver form `user=xxx password=xxx host=xxx...`
+	//func ParsePostgreConn(url string) (string, error) {
+	//	if !strings.HasPrefix(url, "postgre://") || !strings.HasPrefix(url, "postgresql://") {
+	//		ret, err := pq.ParseURL(url)
+	//		if err != nil {
+	//			return "", err
+	//		}
+	//		return ret, nil
+	//	}
+	//	return url, nil
+	//}
+
 	conf := make(map[string]string)
 	host, ok := os.LookupEnv(dbhost)
 	if !ok {
