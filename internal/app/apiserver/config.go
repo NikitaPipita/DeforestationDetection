@@ -19,9 +19,9 @@ const (
 )
 
 type Config struct {
-	BindAddr        string `toml:"bind_addr"`
-	LogLevel        string `toml:"log_level"`
-	DatabaseURL     string `os:"database_url"`
+	BindAddr        string
+	LogLevel        string
+	DatabaseURL     string
 	PGDatabaseURL   string
 	DatabaseDumpDir string
 }
