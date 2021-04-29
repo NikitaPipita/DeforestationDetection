@@ -18,7 +18,7 @@ func main() {
 	//flag.Parse()
 
 	config := apiserver.NewConfig()
-	log.Printf("Server Configs are")
+	log.Printf("Server Configs are %v", config)
 
 	//_, err := toml.DecodeFile(configPath, config)
 	//if err != nil {
