@@ -299,7 +299,7 @@ func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, 
 
 func (r *IotRepository) GetAllSignaling() ([]model.Iot, error) {
 	rows, err := r.store.db.Query(
-		"SELECT longitude, latitude, last_update_time_unix, iot_state " +
+		"SELECT longitude, latitude, iot_state " +
 			"FROM iot " +
 			"WHERE iot_state = 'active' OR iot_state = 'lost'")
 
