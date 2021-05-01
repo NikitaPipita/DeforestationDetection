@@ -87,6 +87,8 @@ func (s *server) configureRouter() {
 
 	s.router.HandleFunc("/dump/make", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.MakeAndDownloadDump))).Methods(http.MethodGet)
 	s.router.HandleFunc("/dump/exec", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.UploadAndExecuteDump))).Methods(http.MethodPost)
+
+	s.router.HandleFunc("/options", s.optionsMethod()).Methods(http.MethodOptions)
 }
 
 func (s *server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
@@ -106,4 +108,11 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS, PUT, DELETE")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+func (s *server) optionsMethod() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS, PUT, DELETE")
+		s.respond(w, r, http.StatusOK, nil)
+	}
 }
