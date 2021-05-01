@@ -30,7 +30,7 @@ type IotRepository interface {
 	CreateByUser(*model.Iot) error
 	Update(int, *model.Iot) error
 	Delete(int) error
-	CheckIfPositionSuitable(groupID int, longitude float64, latitude float64, iotType string) (bool, error)
+	CheckIfPositionSuitable(groupID int, longitude float64, latitude float64, iotType string) (bool, float64, error)
 	GetAllSignaling() ([]model.Iot, error)
 	ChangeState(int, string) error
 }

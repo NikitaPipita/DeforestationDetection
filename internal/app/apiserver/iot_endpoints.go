@@ -210,6 +210,11 @@ func (s *server) checkIfPositionSuitable() http.HandlerFunc {
 		IotType   string  `json:"iot_type"`
 	}
 
+	type response struct {
+		Suitable                  bool    `json:"suitable"`
+		MinimumDistanceToMoveAway float64 `json:"minimum_distance_to_move_away"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
 		req := &request{}
@@ -218,17 +223,18 @@ func (s *server) checkIfPositionSuitable() http.HandlerFunc {
 			return
 		}
 
-		suitable, err := s.store.Iot().CheckIfPositionSuitable(req.GroupID, req.Longitude, req.Latitude, req.IotType)
+		suitable, minimumDistanceToMoveAway, err := s.store.Iot().CheckIfPositionSuitable(req.GroupID, req.Longitude, req.Latitude, req.IotType)
 		if err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
 
-		response := map[string]bool{
-			"suitable": suitable,
+		res := response{
+			Suitable:                  suitable,
+			MinimumDistanceToMoveAway: minimumDistanceToMoveAway,
 		}
 
-		s.respond(w, r, http.StatusOK, response)
+		s.respond(w, r, http.StatusOK, res)
 	}
 }
 

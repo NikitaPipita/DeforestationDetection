@@ -239,7 +239,7 @@ func (r *IotRepository) Delete(id int) error {
 	return nil
 }
 
-func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, latitude float64, iotType string) (bool, error) {
+func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, latitude float64, iotType string) (bool, float64, error) {
 	i := &model.Iot{
 		User:      &model.User{},
 		Group:     &model.IotGroup{},
@@ -249,11 +249,11 @@ func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, 
 	}
 
 	if err := i.ValidateLongitudeAndLatitude(); err != nil {
-		return false, err
+		return false, 0.0, err
 	}
 
 	if err := i.ValidateType(); err != nil {
-		return false, err
+		return false, 0.0, err
 	}
 
 	rows, err := r.store.db.Query(
@@ -263,11 +263,14 @@ func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, 
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, store.ErrRecordNotFound
+			return false, 0.0, store.ErrRecordNotFound
 		}
 
-		return false, err
+		return false, 0.0, err
 	}
+
+	isSuitable := true
+	minimumDistanceToMoveAway := 0.0
 
 	for rows.Next() {
 		var curLongitude float64
@@ -278,23 +281,32 @@ func (r *IotRepository) CheckIfPositionSuitable(groupID int, longitude float64, 
 			&curLatitude,
 			&curType,
 		); err != nil {
-			return false, err
+			return false, 0.0, err
 		}
 
 		result := haversineDistanceBetweenTwoPointsInMeters(longitude, latitude, curLongitude, curLatitude)
+		distanceToMoveAway := 0.0
 
 		if curType == "microphone" && iotType == "microphone" && result < 200 {
-			return false, nil
-		} else if curType == "microphone" && iotType == "gyroscope" && result < 100 {
-			return false, nil
+			isSuitable = false
+			distanceToMoveAway = 200 - result
+		} else if curType == "microphone" && iotType == "gyroscope" && result < 120 {
+			isSuitable = false
+			distanceToMoveAway = 120 - result
 		} else if curType == "gyroscope" && iotType == "gyroscope" && result < 40 {
-			return false, nil
-		} else if curType == "microphone" && iotType == "microphone" && result < 100 {
-			return false, nil
+			isSuitable = false
+			distanceToMoveAway = 40 - result
+		} else if curType == "gyroscope" && iotType == "microphone" && result < 120 {
+			isSuitable = false
+			distanceToMoveAway = 120 - result
+		}
+
+		if distanceToMoveAway > 0 && distanceToMoveAway > minimumDistanceToMoveAway {
+			minimumDistanceToMoveAway = distanceToMoveAway
 		}
 	}
 
-	return true, nil
+	return isSuitable, minimumDistanceToMoveAway, nil
 }
 
 func (r *IotRepository) GetAllSignaling() ([]model.Iot, error) {
