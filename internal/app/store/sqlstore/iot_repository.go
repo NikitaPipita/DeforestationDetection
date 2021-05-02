@@ -359,7 +359,7 @@ func (r *IotRepository) ChangeState(id int, state string) error {
 
 	_, err := r.store.db.Exec(
 		"UPDATE iot SET iot_state = $1 WHERE iot_id = $2",
-		i.IotType,
+		i.IotState,
 		id,
 	)
 

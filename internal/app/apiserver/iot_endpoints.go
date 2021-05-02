@@ -253,8 +253,8 @@ func (s *server) getAllSignaling() http.HandlerFunc {
 
 func (s *server) changeIotState() http.HandlerFunc {
 	type request struct {
-		ID      int    `json:"iot_id"`
-		IotType string `json:"iot_type"`
+		ID       int    `json:"iot_id"`
+		IotState string `json:"iot_state"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +265,7 @@ func (s *server) changeIotState() http.HandlerFunc {
 			return
 		}
 
-		if err := s.store.Iot().ChangeState(req.ID, req.IotType); err != nil {
+		if err := s.store.Iot().ChangeState(req.ID, req.IotState); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
