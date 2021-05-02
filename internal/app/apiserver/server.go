@@ -67,7 +67,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.updateUserById()))).Methods(http.MethodPut)
 	s.router.HandleFunc("/user/{id:[0-9]+}", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.deleteUserById()))).Methods(http.MethodDelete)
 
-	s.router.HandleFunc("/groups", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getAllIotGroups()))).Methods(http.MethodGet)
+	s.router.HandleFunc("/groups", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.getAllIotGroups()))).Methods(http.MethodGet)
 	s.router.HandleFunc("/group/{id:[0-9]+}", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.getIotGroupByID()))).Methods(http.MethodGet)
 	s.router.HandleFunc("/groups", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.createIotGroup()))).Methods(http.MethodPost)
 	s.router.HandleFunc("/groups/create", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.createIotGroupByUser()))).Methods(http.MethodPost)
