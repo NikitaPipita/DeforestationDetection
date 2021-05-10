@@ -84,6 +84,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/iot/check", s.tokenAuthMiddleware(s.employeeAccessMiddleware(s.checkIfPositionSuitable()))).Methods(http.MethodPost)
 	s.router.HandleFunc("/iot/signal", s.tokenAuthMiddleware(s.observerAccessMiddleware(s.getAllSignaling()))).Methods(http.MethodGet)
 	s.router.HandleFunc("/iot/state", s.tokenAuthMiddleware(s.managerAccessMiddleware(s.changeIotState()))).Methods(http.MethodPut)
+	s.router.HandleFunc("/iot/connected/state", s.changeConnectedIotState()).Methods(http.MethodPut)
 
 	s.router.HandleFunc("/dump/make", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.MakeAndDownloadDump))).Methods(http.MethodGet)
 	s.router.HandleFunc("/dump/exec", s.tokenAuthMiddleware(s.adminAccessMiddleware(s.UploadAndExecuteDump))).Methods(http.MethodPost)

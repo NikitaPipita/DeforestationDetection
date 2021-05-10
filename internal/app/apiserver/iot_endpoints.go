@@ -273,3 +273,26 @@ func (s *server) changeIotState() http.HandlerFunc {
 		s.respond(w, r, http.StatusOK, nil)
 	}
 }
+
+func (s *server) changeConnectedIotState() http.HandlerFunc {
+	type request struct {
+		ID       int    `json:"iot_id"`
+		IotState string `json:"iot_state"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		if err := s.store.Iot().ChangeState(req.ID, req.IotState); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, nil)
+	}
+}
