@@ -150,6 +150,25 @@ func (r *IotRepository) FindByID(id int) (*model.Iot, error) {
 	return i, nil
 }
 
+func (r *IotRepository) FindPasswordByID(id int) (*model.Iot, error) {
+	i := &model.Iot{}
+	if err := r.store.db.QueryRow(
+		"SELECT iot_id, iot_serial_password FROM iot WHERE iot_id = $1",
+		id,
+	).Scan(
+		&i.ID,
+		&i.EncryptedPassword,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return i, nil
+}
+
 func (r *IotRepository) Create(i *model.Iot) error {
 	if err := i.Validate(); err != nil {
 		return err
@@ -160,8 +179,8 @@ func (r *IotRepository) Create(i *model.Iot) error {
 	}
 
 	return r.store.db.QueryRow(
-		"INSERT INTO iot (user_id, group_id, longitude, latitude, last_update_time_unix, iot_state, iot_type) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING iot_id",
+		"INSERT INTO iot (user_id, group_id, longitude, latitude, last_update_time_unix, iot_state, iot_type, iot_serial_password) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING iot_id",
 		i.User.ID,
 		i.Group.ID,
 		i.Longitude,
@@ -169,6 +188,7 @@ func (r *IotRepository) Create(i *model.Iot) error {
 		i.LastUpdateTimeUnix,
 		i.IotState,
 		i.IotType,
+		i.EncryptedPassword,
 	).Scan(&i.ID)
 }
 
@@ -182,14 +202,15 @@ func (r *IotRepository) CreateByUser(i *model.Iot) error {
 	}
 
 	return r.store.db.QueryRow(
-		"INSERT INTO iot (user_id, group_id, longitude, latitude, iot_state, iot_type) "+
-			"VALUES ($1, $2, $3, $4, $5, $6) RETURNING iot_id",
+		"INSERT INTO iot (user_id, group_id, longitude, latitude, iot_state, iot_type, iot_serial_password) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING iot_id",
 		i.User.ID,
 		i.Group.ID,
 		i.Longitude,
 		i.Latitude,
 		i.IotState,
 		i.IotType,
+		i.EncryptedPassword,
 	).Scan(
 		&i.ID,
 	)

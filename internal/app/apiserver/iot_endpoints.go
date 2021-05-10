@@ -92,11 +92,14 @@ func (s *server) createIot() http.HandlerFunc {
 			LastUpdateTimeUnix: req.LastUpdateTimeUnix,
 			IotState:           req.IotState,
 			IotType:            req.IotType,
+			Password:           "qwerty",
 		}
 		if err := s.store.Iot().Create(iot); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
+
+		iot.Sanitize()
 
 		s.respond(w, r, http.StatusCreated, iot)
 	}
@@ -131,11 +134,14 @@ func (s *server) createIotByUser() http.HandlerFunc {
 			Latitude:  req.Latitude,
 			IotState:  req.IotState,
 			IotType:   req.IotType,
+			Password:  "qwerty",
 		}
 		if err := s.store.Iot().CreateByUser(iot); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
+
+		iot.Sanitize()
 
 		s.respond(w, r, http.StatusCreated, iot)
 	}
@@ -271,6 +277,49 @@ func (s *server) changeIotState() http.HandlerFunc {
 		}
 
 		s.respond(w, r, http.StatusOK, nil)
+	}
+}
+
+func (s *server) handleIotSessionsCreate() http.HandlerFunc {
+	type request struct {
+		ID       int    `json:"serial_id"`
+		Password string `json:"serial_password"`
+	}
+
+	type response struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		iot, err := s.store.Iot().FindPasswordByID(req.ID)
+		if err != nil || !iot.ComparePassword(req.Password) {
+			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
+			return
+		}
+
+		ts, err := CreateIotToken(uint64(iot.ID))
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		if err := CreateAuth(uint64(iot.ID), ts); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+		}
+
+		res := response{
+			AccessToken:  ts.AccessToken,
+			RefreshToken: ts.RefreshToken}
+
+		s.respond(w, r, http.StatusOK, res)
 	}
 }
 

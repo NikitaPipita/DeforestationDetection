@@ -26,6 +26,7 @@ type IotRepository interface {
 	GetAll() ([]model.Iot, error)
 	FindAllInGroup(int) ([]model.Iot, error)
 	FindByID(int) (*model.Iot, error)
+	FindPasswordByID(int) (*model.Iot, error)
 	Create(*model.Iot) error
 	CreateByUser(*model.Iot) error
 	Update(int, *model.Iot) error

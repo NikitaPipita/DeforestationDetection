@@ -2,6 +2,7 @@ package model
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation"
+	"golang.org/x/crypto/bcrypt"
 	"strconv"
 )
 
@@ -14,6 +15,8 @@ type Iot struct {
 	LastUpdateTimeUnix int64     `json:"last_update_time_unix"`
 	IotState           string    `json:"iot_state"`
 	IotType            string    `json:"iot_type"`
+	Password           string    `json:"password,omitempty"`
+	EncryptedPassword  string    `json:"-"`
 }
 
 func (i *Iot) Validate() error {
@@ -76,6 +79,15 @@ func (i *Iot) ValidateType() error {
 }
 
 func (i *Iot) BeforeCreate() error {
+	if len(i.Password) > 0 {
+		enc, err := encryptString(i.Password)
+		if err != nil {
+			return err
+		}
+
+		i.EncryptedPassword = enc
+	}
+
 	sLongitude := strconv.FormatFloat(i.Longitude, 'f', 6, 64)
 	fLongitude, err := strconv.ParseFloat(sLongitude, 64)
 
@@ -94,4 +106,12 @@ func (i *Iot) BeforeCreate() error {
 	i.Latitude = fLatitude
 
 	return nil
+}
+
+func (i *Iot) Sanitize() {
+	i.Password = ""
+}
+
+func (i *Iot) ComparePassword(password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(i.EncryptedPassword), []byte(password)) == nil
 }

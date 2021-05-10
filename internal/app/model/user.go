@@ -70,12 +70,3 @@ func (u *User) Sanitize() {
 func (u *User) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.EncryptedPassword), []byte(password)) == nil
 }
-
-func encryptString(s string) (string, error) {
-	b, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.MinCost)
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), nil
-}

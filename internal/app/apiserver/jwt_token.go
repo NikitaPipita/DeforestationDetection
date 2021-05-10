@@ -71,6 +71,38 @@ func CreateAuth(userid uint64, td *TokenDetails) error {
 	return nil
 }
 
+func CreateIotToken(iotId uint64) (*TokenDetails, error) {
+	td := &TokenDetails{}
+	td.AtExpires = time.Now().Add(time.Minute * 5).Unix()
+	td.AccessUuid = uuid.NewV4().String()
+
+	td.RtExpires = time.Now().Add(time.Hour * 24 * 356).Unix()
+	td.RefreshUuid = uuid.NewV4().String()
+
+	var err error
+	atClaims := jwt.MapClaims{}
+	atClaims["authorized"] = true
+	atClaims["access_uuid"] = td.AccessUuid
+	atClaims["iot_id"] = iotId
+	atClaims["exp"] = td.AtExpires
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	td.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	if err != nil {
+		return nil, err
+	}
+
+	rtClaims := jwt.MapClaims{}
+	rtClaims["refresh_uuid"] = td.RefreshUuid
+	rtClaims["iot_id"] = iotId
+	rtClaims["exp"] = td.RtExpires
+	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
+	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
+	if err != nil {
+		return nil, err
+	}
+	return td, nil
+}
+
 func ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	strArr := strings.Split(bearToken, " ")
